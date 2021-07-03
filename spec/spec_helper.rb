@@ -1,7 +1,9 @@
 require 'webmock'
 require 'capistrano/all'
+require "capistrano/setup"
 require 'capistrano/asg'
 require 'webmock/rspec'
+require 'byebug'
 
 WebMock.disable_net_connect!
 

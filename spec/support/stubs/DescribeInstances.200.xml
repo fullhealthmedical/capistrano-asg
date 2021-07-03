@@ -117,6 +117,10 @@
                 </privateIpAddressesSet>
               </item>
             </networkInterfaceSet>
+            <iamInstanceProfile>
+              <arn>arn:aws:iam::123456789012:instance-profile/AdminRole</arn>
+              <id>ABCAJEDNCAA64SSD123AB</id>
+            </iamInstanceProfile>
           </item>
         </instancesSet>
       </item>

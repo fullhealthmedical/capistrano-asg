@@ -15,6 +15,10 @@ describe 'Capistrano::Asg' do
     webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'CreateLaunchConfiguration.200.xml') { Hash[body: /Action=CreateLaunchConfiguration/] }
     webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'DeleteLaunchConfiguration.200.xml') { Hash[body: /Action=DeleteLaunchConfiguration/] }
     webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'UpdateAutoScalingGroup.200.xml') { Hash[body: /Action=UpdateAutoScalingGroup/] }
+
+    set :aws_region, 'eu-west-1'
+    set :aws_secret_access_key, 'key'
+    set :aws_access_key_id, 'id'
   end
 
   let!(:ami) do
@@ -54,7 +58,7 @@ describe 'Capistrano::Asg' do
 
     it 'creates a new Launch Configuration on AWS' do
       expect(WebMock).to have_requested(:post, /autoscaling.(.*).amazonaws.com\/\z/).
-        with(body: /Action=CreateLaunchConfiguration&AssociatePublicIpAddress=true&ImageId=ami-4fa54026&InstanceMonitoring.Enabled=true&InstanceType=m1.small&LaunchConfigurationName=cap-asg-production/)
+        with(body: /Action=CreateLaunchConfiguration&AssociatePublicIpAddress=true&IamInstanceProfile=arn%3Aaws%3Aiam%3A%3A123456789012%3Ainstance-profile%2FAdminRole&ImageId=ami-4fa54026&InstanceMonitoring.Enabled=true&InstanceType=m1.small&LaunchConfigurationName=cap-asg-production/)
     end
 
     it 'deletes any LCs with name =~ cap-asg-production' do
