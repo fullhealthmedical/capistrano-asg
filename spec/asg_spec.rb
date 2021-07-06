@@ -11,9 +11,6 @@ describe 'Capistrano::Asg' do
     webmock(:post, %r{ec2.(.*).amazonaws.com\/\z} => 'CreateTags.200.xml') { Hash[body: /Action=CreateTags/] }
     webmock(:post, %r{ec2.(.*).amazonaws.com\/\z} => 'DescribeSnapshots.200.xml') { Hash[body: /Action=DescribeSnapshots/] }
     webmock(:post, %r{ec2.(.*).amazonaws.com\/\z} => 'DeleteSnapshot.200.xml') { Hash[body: /Action=DeleteSnapshot/] }
-    webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'DescribeLaunchConfigurations.200.xml') { Hash[body: /Action=DescribeLaunchConfigurations/] }
-    webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'CreateLaunchConfiguration.200.xml') { Hash[body: /Action=CreateLaunchConfiguration/] }
-    webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'DeleteLaunchConfiguration.200.xml') { Hash[body: /Action=DeleteLaunchConfiguration/] }
     webmock(:post, %r{autoscaling.(.*).amazonaws.com\/\z} => 'UpdateAutoScalingGroup.200.xml') { Hash[body: /Action=UpdateAutoScalingGroup/] }
 
     set :aws_region, 'eu-west-1'
@@ -46,28 +43,6 @@ describe 'Capistrano::Asg' do
 
     it 'tags the new AMI with cap-asg-Deploy-group=<autoscale group name>' do
       expect(WebMock).to have_requested(:post, /ec2.(.*).amazonaws.com\/\z/).with(body: /Action=CreateTags&ResourceId.1=ami-4fa54026&Tag.1.Key=cap-asg-deploy-group&Tag.1.Value=production/)
-    end
-  end
-
-  describe 'Launch configuration creation & cleanup' do
-    let!(:launch_configuration) do
-      _lc = nil
-      Capistrano::Asg::LaunchConfiguration.create(ami) { |lc| _lc = lc }
-      _lc
-    end
-
-    it 'creates a new Launch Configuration on AWS' do
-      expect(WebMock).to have_requested(:post, /autoscaling.(.*).amazonaws.com\/\z/).
-        with(body: /Action=CreateLaunchConfiguration&AssociatePublicIpAddress=true&IamInstanceProfile=arn%3Aaws%3Aiam%3A%3A123456789012%3Ainstance-profile%2FAdminRole&ImageId=ami-4fa54026&InstanceMonitoring.Enabled=true&InstanceType=m1.small&LaunchConfigurationName=cap-asg-production/)
-    end
-
-    it 'deletes any LCs with name =~ cap-asg-production' do
-      expect(WebMock).to have_requested(:post, /autoscaling.(.*).amazonaws.com\/\z/).with(body: /Action=DeleteLaunchConfiguration&LaunchConfigurationName=cap-asg-production-production-lc-1234567890/)
-    end
-
-    it 'attaches the LC to the autoscale group' do
-      launch_configuration.attach_to_autoscale_group!
-      expect(WebMock).to have_requested(:post, /autoscaling.(.*).amazonaws.com\/\z/).with(body: /Action=UpdateAutoScalingGroup&AutoScalingGroupName=production&LaunchConfigurationName=cap-asg-production-production-lc-\d{10,}/)
     end
   end
 end

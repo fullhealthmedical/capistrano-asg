@@ -19,7 +19,9 @@ module Capistrano
         end
 
         def autoscaling_group
-          @_autoscaling_group ||= autoscaling_resource.group(autoscaling_group_name)
+          @_autoscaling_group ||= AutoScalingGroup.new(
+            autoscaling_resource.group(autoscaling_group_name)
+          )
         end
 
         def autoscaling_group_name

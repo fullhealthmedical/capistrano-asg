@@ -11,9 +11,10 @@ require 'capistrano/asg/aws/credentials'
 require 'capistrano/asg/aws/region'
 require 'capistrano/asg/aws/autoscaling'
 require 'capistrano/asg/aws/ec2'
+require 'capistrano/asg/aws/launch_template'
+require 'capistrano/asg/auto_scaling_group'
 require 'capistrano/asg/aws_resource'
 require 'capistrano/asg/ami'
-require 'capistrano/asg/launch_configuration'
 
 module Capistrano
   module Asg
@@ -28,11 +29,13 @@ def autoscale(groupname, *args)
   include Capistrano::DSL
   include Capistrano::Asg::Aws::AutoScaling
   include Capistrano::Asg::Aws::EC2
-
-  autoscaling_group = autoscaling_resource.group(groupname)
-  asg_instances = autoscaling_group.instances
+  include Capistrano::Asg::Aws::LaunchTemplate
 
   set :aws_autoscale_group, groupname
+
+  autoscaling_group = autoscaling_resource.autoscaling_group
+  asg_instances = autoscaling_group.instances
+
   region = fetch(:aws_region)
   regions = fetch(:regions, {})
   (regions[region] ||= []) << groupname
@@ -43,7 +46,7 @@ def autoscale(groupname, *args)
       puts "Autoscaling: Skipping unhealthy instance #{asg_instance.id}"
     else
       ec2_instance = ec2_resource.instance(asg_instance.id)
-      hostname = ec2_instance.private_ip_address
+      hostname = ec2_instance.public_ip_address
       puts "Autoscaling: Adding server #{hostname}"
       server(hostname, *args)
     end
