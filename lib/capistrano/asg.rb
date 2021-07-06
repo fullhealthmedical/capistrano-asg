@@ -31,7 +31,7 @@ def autoscale(groupname, *args)
   include Capistrano::Asg::Aws::EC2
   include Capistrano::Asg::Aws::LaunchTemplate
 
-  set :aws_autoscale_group, groupname
+  set :aws_autoscale_group_name, groupname
 
   autoscaling_group = autoscaling_resource.autoscaling_group
   asg_instances = autoscaling_group.instances
@@ -53,6 +53,14 @@ def autoscale(groupname, *args)
   end
 
   if asg_instances.count > 0 && fetch(:create_ami, true)
+    puts "Autoscaling: Pausing #{groupname} autoscaling"
+    autoscaling_group.pause
+
+    # save autoscaling group instance
+    autoscale_groups = fetch(:autoscale_groups, {})
+    autoscale_groups[groupname] = autoscaling_group
+    set :autoscale_groups, autoscale_groups
+
     after('deploy:finishing', 'asg:scale')
   else
     puts 'Autoscaling: AMI could not be created because no running instances were found.\

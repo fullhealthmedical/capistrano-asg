@@ -25,7 +25,7 @@ module Capistrano
         end
 
         def autoscaling_group_name
-          fetch(:aws_autoscale_group)
+          fetch(:aws_autoscale_group_name)
         end
 
         def reset_autoscaling_objects

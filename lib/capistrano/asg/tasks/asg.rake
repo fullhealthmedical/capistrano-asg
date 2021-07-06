@@ -16,7 +16,7 @@ namespace :asg do
 
       # Iterate over relevant ASGs
       regions[region].each do |asg|
-        set :aws_autoscale_group, asg
+        set :aws_autoscale_group_name, asg
         Capistrano::Asg::AMI.create do |ami|
           puts "Autoscaling: Created AMI: #{ami.aws_counterpart.id} from region #{region} in ASG #{asg}"
 
@@ -28,7 +28,19 @@ namespace :asg do
           )
 
           puts "Autoscaling: Created version for #{result.launch_template_version.launch_template_name}"
+
+          cached_asg = fetch(:autoscale_groups, {})[asg]
+
+          if cached_asg
+            cached_asg.resume
+            puts "Autoscaling: Resumed #{asg} autoscaling"
+          else
+            puts "Autoscaling: Can't resume autoscaling for #{asg}"
+          end
         end
+
+        reset_autoscaling_objects
+        reset_ec2_objects
       end
     end
 
