@@ -10,7 +10,7 @@ module Capistrano
         def credentials
           access_key_id = fetch(:aws_access_key_id, ENV['AWS_ACCESS_KEY_ID'])
           secret_access_key = fetch(:aws_secret_access_key, ENV['AWS_SECRET_ACCESS_KEY'])
-          ::Aws::Credentials.new(access_key_id, secret_access_key)
+          ::Aws::Credentials.new(access_key_id, secret_access_key, ENV['AWS_SESSION_TOKEN'])
         end
       end
     end
